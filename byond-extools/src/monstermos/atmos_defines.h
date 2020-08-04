@@ -19,7 +19,7 @@ const float O2STANDARD				= 0.21;	//percentage of oxygen in a normal mixture of 
 const float N2STANDARD				= 0.79;	//same but for nitrogen
 const float MOLES_O2STANDARD		= (MOLES_CELLSTANDARD*O2STANDARD);	// O2 standard value (21%)
 const float MOLES_N2STANDARD		= (MOLES_CELLSTANDARD*N2STANDARD);	// N2 standard value (79%)
-const float BREATH_VOLUME			= 0.5;		//liters in a normal breath
+const float BREATH_VOLUME			= 2;		//liters in a normal breath
 const float BREATH_PERCENTAGE		= (BREATH_VOLUME/CELL_VOLUME);					//Amount of air to take a from a tile
 
 //EXCITED GROUPS
@@ -78,7 +78,7 @@ const float TEMPERATURE_DAMAGE_COEFFICIENT		= 1.5;		//This is used in handle_tem
 const float BODYTEMP_NORMAL						= 310.15;			//The natural temperature for a body
 const float BODYTEMP_AUTORECOVERY_DIVISOR		= 11;		//This is the divisor which handles how much of the temperature difference between the current body temperature and 310.15K (optimal temperature) humans auto-regenerate each tick. The higher the number, the slower the recovery. This is applied each tick, so long as the mob is alive.
 const float BODYTEMP_AUTORECOVERY_MINIMUM		= 12;		//Minimum amount of kelvin moved toward 310K per tick. So long as abs(310.15 - bodytemp) is more than 50.
-const float BODYTEMP_COLD_DIVISOR				= 6;		//Similar to the BODYTEMP_AUTORECOVERY_DIVISOR, but this is the divisor which is applied at the stage that follows autorecovery. This is the divisor which comes into play when the human's loc temperature is lower than their body temperature. Make it lower to lose bodytemp faster.
+const float BODYTEMP_COLD_DIVISOR				= 15;		//Similar to the BODYTEMP_AUTORECOVERY_DIVISOR, but this is the divisor which is applied at the stage that follows autorecovery. This is the divisor which comes into play when the human's loc temperature is lower than their body temperature. Make it lower to lose bodytemp faster.
 const float BODYTEMP_HEAT_DIVISOR				= 15;		//Similar to the BODYTEMP_AUTORECOVERY_DIVISOR, but this is the divisor which is applied at the stage that follows autorecovery. This is the divisor which comes into play when the human's loc temperature is higher than their body temperature. Make it lower to gain bodytemp faster.
 const float BODYTEMP_COOLING_MAX				= -100;		//The maximum number of degrees that your body can cool in 1 tick, due to the environment, when in a cold area.
 const float BODYTEMP_HEATING_MAX				= 30;		//The maximum number of degrees that your body can heat up in 1 tick, due to the environment, when in a hot area.
