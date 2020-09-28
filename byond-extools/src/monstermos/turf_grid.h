@@ -31,7 +31,8 @@ struct Tile
 	unsigned char adjacent_bits = 0;
 	unsigned char atmos_cooldown = 0;
 	bool excited = false;
-	std::shared_ptr<GasMixture> air;
+	GasMixture* air; // raw pointer cause it's in a vector anyway
+	size_t air_index;
 	Value turf_ref; // not managed because turf refcounts are very unimportant and don't matter
 	std::unique_ptr<PlanetAtmosInfo> planet_atmos_info;
 	std::shared_ptr<ExcitedGroup> excited_group; // shared_ptr for an actuall good reason this time.
@@ -74,16 +75,24 @@ struct ExcitedGroup : public std::enable_shared_from_this<ExcitedGroup>
 
 class TurfGrid {
 public:
-	Tile *get(int x, int y, int z) const;
-	Tile *get(int id) const;
+	Tile *get(int x, int y, int z);
+	Tile *get(int id);
 	void refresh();
+	inline short get_maxx() { return maxx; }
+	inline short get_maxy() { return maxy; }
+	inline short get_maxz() { return maxz; }
+	inline int get_maxid() { return maxid; }
+	inline std::vector<Tile>::iterator begin() { return tiles.begin();}
+	inline std::vector<Tile>::iterator end() { return tiles.end();}
 
 private:
-	std::unique_ptr<Tile[]> tiles;
+	std::vector<Tile> tiles;
 	short maxx = 0;
 	short maxy = 0;
 	short maxz = 0;
 	int maxid = 0;
 };
 
-std::shared_ptr<GasMixture> &get_gas_mixture(Value src);
+GasMixture &get_gas_mixture(Value src);
+
+size_t get_gas_mixture_index(Value val);
