@@ -52,13 +52,17 @@ break;
 
 void Tile::update_air_ref() {
 	bool isopenturf = turf_ref.get_by_id(str_id_is_openturf).valuef;
-	air = nullptr;
 	if (isopenturf) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
 		if (air_ref.type == DATUM) {
-			air = &get_gas_mixture(air_ref);
-			air_index = get_gas_mixture_index(air_ref);
+			air = get_gas_mixture(air_ref);
 		}
+		else {
+			air.reset();
+		}
+	}
+	else {
+		air.reset();
 	}
 }
 
@@ -73,7 +77,7 @@ void Tile::process_cell(int fire_count) {
 		return;
 	}
 	if (turf_ref.get_by_id(str_id_archived_cycle) < fire_count) {
-		turf_ref.invoke_by_id(str_id_archive,{});
+		archive(fire_count);
 	}
 	SetVariable(turf_ref.type, turf_ref.value, str_id_current_cycle, Value(float(fire_count)));
 
@@ -91,8 +95,7 @@ void Tile::process_cell(int fire_count) {
 		Tile& enemy_tile = *adjacent[i];
 		if (!enemy_tile.air) continue; // having no air is bad I think or something.
 		if (fire_count <= enemy_tile.turf_ref.get_by_id(str_id_current_cycle)) continue;
-		enemy_tile.turf_ref.invoke_by_id(str_id_archive,{});
-
+		enemy_tile.archive(fire_count);
 
 		bool should_share_air = false;
 
@@ -132,6 +135,7 @@ void Tile::process_cell(int fire_count) {
 			last_share_check();
 		}
 	}
+
 	if (has_planetary_atmos) {
 		update_planet_atmos();
 		if (air->compare(planet_atmos_info->last_mix)) {
@@ -144,10 +148,10 @@ void Tile::process_cell(int fire_count) {
 			last_share_check();
 		}
 	}
+		
 	turf_ref.get_by_id(str_id_air).invoke_by_id(str_id_react, { turf_ref });
 	turf_ref.invoke_by_id(str_id_update_visuals, {});
-	bool considering_superconductivity = air->get_temperature() > MINIMUM_TEMPERATURE_START_SUPERCONDUCTION && turf_ref.invoke("consider_superconductivity", {Value::True()});
-	if ((!excited_group && considering_superconductivity)
+	if ((!excited_group && !(air->get_temperature() > MINIMUM_TEMPERATURE_START_SUPERCONDUCTION && turf_ref.invoke("consider_superconductivity", {Value::True()})))
 		|| (atmos_cooldown > (EXCITED_GROUP_DISMANTLE_CYCLES * 2))) {
 		SSair.invoke("remove_from_active", { turf_ref });
 	}
@@ -157,8 +161,8 @@ void Tile::update_planet_atmos() {
 
 	if (!planet_atmos_info || planet_atmos_info->last_initial != turf_ref.get_by_id(str_id_initial_gas_mix)) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
-		if (air_ref.type != DATUM || &get_gas_mixture(air_ref) != air) {
-			air = &get_gas_mixture(air_ref);
+		if (air_ref.type != DATUM || get_gas_mixture(air_ref) != air) {
+			air = get_gas_mixture(air_ref);
 			std::string message = (std::string("Air reference in extools doesn't match actual air, or the air is null! Turf ref: ") + std::to_string(turf_ref.value));
 			Runtime((char *)message.c_str()); // ree why doesn't it accept const
 			return;
@@ -184,6 +188,15 @@ void Tile::last_share_check() {
 	else if (last_share > MINIMUM_MOLES_DELTA_TO_MOVE) {
 		excited_group->dismantle_cooldown = 0;
 		atmos_cooldown = 0;
+	}
+}
+
+void Tile::archive(int fire_count) {
+	if (turf_ref.get_by_id(str_id_is_openturf).valuef) {
+		SetVariable(turf_ref.type, turf_ref.value, str_id_archived_cycle, Value(float(fire_count)));
+	}
+	if (air) {
+		air->archive();
 	}
 }
 
@@ -343,7 +356,6 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 				// Uh oh! looks like someone opened an airlock to space! TIME TO SUCK ALL THE AIR OUT!!!
 				// NOT ONE OF YOU IS GONNA SURVIVE THIS
 				// (I just made explosions less laggy, you're welcome)
-				turfs.push_back(adj);
 				explosively_depressurize(cyclenum);
 				return;
 			}
@@ -698,17 +710,16 @@ void Tile::explosively_depressurize(int cyclenum) {
 	return;
 }
 
-Tile *TurfGrid::get(int x, int y, int z) {
+Tile *TurfGrid::get(int x, int y, int z) const {
 	if (x < 1 || y < 1 || z < 1 || x > maxx || y > maxy || z > maxz) return nullptr;
-	if (tiles.empty()) return nullptr;
-	return get((x - 1) + maxx * (y - 1 + maxy * (z - 1)));
+	if (!tiles) return nullptr;
+	return &tiles[(x - 1) + maxx * (y - 1 + maxy * (z - 1))];
 }
-Tile *TurfGrid::get(int id) {
-	if (tiles.empty() || id < 0 || id >= maxid) {
+Tile *TurfGrid::get(int id) const {
+	if (!tiles || id < 0 || id >= maxid) {
 		return nullptr;
 	}
-	Tile* data = tiles.data();
-	return &(tiles.data()[id]);
+	return &tiles[id];
 }
 void TurfGrid::refresh() {
 	int new_maxx = Value::World().get("maxx").valuef;
@@ -716,7 +727,7 @@ void TurfGrid::refresh() {
 	int new_maxz = Value::World().get("maxz").valuef;
 	// we make a new thingy
 	// delete the old one too I guess
-	std::vector<Tile> new_tiles(new_maxx*new_maxy*new_maxz);
+	std::unique_ptr<Tile[]> new_tiles(new Tile[new_maxx*new_maxy*new_maxz]);
 
 	// make the thingy have actual like values or some shit I guess
 	for (int z = 1; z <= new_maxz; z++) {
@@ -813,10 +824,8 @@ void ExcitedGroup::self_breakdown(bool space_is_all_consuming) {
 	}
 	breakdown_cooldown = 0;
 }
-
-void remove_from_active(Tile* tile);
-
 void ExcitedGroup::dismantle(bool unexcite) {
+	Value active_turfs = SSair.get_by_id(str_id_active_turfs);
 	int turf_list_size = turf_list.size();
 	for (int i = 0; i < turf_list_size; i++) {
 		Tile* tile = turf_list[i];
@@ -826,9 +835,11 @@ void ExcitedGroup::dismantle(bool unexcite) {
 		}
 	}
 	if (unexcite) {
+		std::vector<Value> turf_refs;
 		for (int i = 0; i < turf_list_size;  i++) {
-			remove_from_active(turf_list[i]);
+			turf_refs.push_back(turf_list[i]->turf_ref);
 		}
+		active_turfs.invoke("Remove", turf_refs);
 	}
 	turf_list.clear();
 }

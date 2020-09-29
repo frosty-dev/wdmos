@@ -368,6 +368,3 @@ MigrationBackup/
 build-linux
 
 .vscode
-*.filters
-*.vcxproj
-*.sln
