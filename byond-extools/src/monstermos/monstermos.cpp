@@ -144,6 +144,14 @@ trvh gasmixture_remove(unsigned int args_len, Value* args, Value src)
 	return Value::Null();
 }
 
+trvh gasmixture_transfer_to(unsigned int args_len, Value* args, Value src)
+{
+	if (args_len < 2)
+		return Value::Null();
+	get_gas_mixture(args[0])->copy_from_mutable(get_gas_mixture(src)->remove(args[1].valuef));
+	return Value::Null();
+}
+
 trvh gasmixture_copy_from(unsigned int args_len, Value* args, Value src)
 {
 	if (args_len < 1)
@@ -535,6 +543,7 @@ const char* enable_monstermos()
 	Core::get_proc("/datum/gas_mixture/proc/get_gases").hook(gasmixture_get_gases);
 	Core::get_proc("/datum/gas_mixture/proc/__remove").hook(gasmixture_remove);
 	Core::get_proc("/datum/gas_mixture/proc/__remove_ratio").hook(gasmixture_remove_ratio);
+	Core::get_proc("/datum/gas_mixture/proc/transfer_to").hook(gasmixture_transfer_to);
 	Core::get_proc("/datum/gas_mixture/proc/set_temperature").hook(gasmixture_set_temperature);
 	Core::get_proc("/datum/gas_mixture/proc/set_volume").hook(gasmixture_set_volume);
 	Core::get_proc("/datum/gas_mixture/proc/get_moles").hook(gasmixture_get_moles);
