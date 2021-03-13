@@ -2,12 +2,12 @@
 
 #include "atmos_defines.h"
 
-#define TOTAL_NUM_GASES 21
+#include <vector>
 
 #define GAS_MIN_MOLES 0.00000005
 #define MINIMUM_HEAT_CAPACITY	0.0003
 
-extern float gas_specific_heat[TOTAL_NUM_GASES];
+extern std::vector<float> gas_specific_heat;
 
 class GasMixture
 {
@@ -20,13 +20,7 @@ class GasMixture
         float heat_capacity() const;
         float heat_capacity_archived() const;
 		void set_min_heat_capacity(float n);
-        inline float total_moles() const { // inlined for debugging reasons
-            float capacity = 0;
-            for (int i = 0; i < TOTAL_NUM_GASES; i++) {
-                capacity += moles[i];
-            }
-            return capacity;
-        }
+        float total_moles() const;
         float return_pressure() const;
         float thermal_energy() const;
         void archive();
@@ -54,8 +48,8 @@ class GasMixture
 
     private:
         GasMixture();
-        float moles[TOTAL_NUM_GASES];
-        float moles_archived[TOTAL_NUM_GASES];
+        std::vector<float> moles;
+        std::vector<float> moles_archived;
         float temperature = 0;
         float temperature_archived;
         float volume;
