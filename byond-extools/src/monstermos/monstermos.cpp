@@ -267,6 +267,29 @@ trvh gasmixture_scrub_into(unsigned int args_len, Value* args, Value src)
 	return args[0];
 }
 
+trvh gasmixture_create_temperature_gradient(unsigned int args_len, Value* args, Value src)
+{
+	if(args_len < 3) {
+		return Value::False();
+	} else if(args[0].type != NUMBER || args[1].type != NUMBER || args[2].type != NUMBER) {
+		return Value::False();
+	} else if (get_gas_mixture(src)->create_temperature_gradient(args[0].valuef, args[1].valuef, args[2].valuef)) {
+		return Value::True();
+	} else {
+		return Value::False();
+	}
+}
+
+trvh gasmixture_tick_temperature_gradient(unsigned int args_len, Value* args, Value src)
+{
+	if(args_len < 1) { return Value::Null(); }
+	else if(args[0].type != NUMBER) { return Value::Null(); }
+	else {
+		get_gas_mixture(src)->tick_temperature_gradient(args[0].valuef);
+		return Value::Null();
+	}
+}
+
 trvh gasmixture_mark_immutable(unsigned int args_len, Value* args, Value src)
 {
 	get_gas_mixture(src)->mark_immutable();
@@ -276,6 +299,12 @@ trvh gasmixture_mark_immutable(unsigned int args_len, Value* args, Value src)
 trvh gasmixture_clear(unsigned int args_len, Value* args, Value src)
 {
 	get_gas_mixture(src)->clear();
+	return Value::Null();
+}
+
+trvh gas_mixture_mark_vacuum(unsigned int args_len, Value* args, Value src)
+{
+	get_gas_mixture(src)->mark_vacuum();
 	return Value::Null();
 }
 
@@ -564,8 +593,11 @@ const char* enable_monstermos()
 	Core::get_proc("/datum/gas_mixture/proc/set_moles").hook(gasmixture_set_moles);
 	Core::get_proc("/datum/gas_mixture/proc/scrub_into").hook(gasmixture_scrub_into);
 	Core::get_proc("/datum/gas_mixture/proc/mark_immutable").hook(gasmixture_mark_immutable);
+	Core::get_proc("/datum/gas_mixture/proc/mark_vacuum").hook(gas_mixture_mark_vacuum);
 	Core::get_proc("/datum/gas_mixture/proc/clear").hook(gasmixture_clear);
 	Core::get_proc("/datum/gas_mixture/proc/multiply").hook(gasmixture_multiply);
+	Core::get_proc("/datum/gas_mixture/proc/create_temperature_gradient").hook(gasmixture_create_temperature_gradient);
+	Core::get_proc("/datum/gas_mixture/proc/tick_temperature_gradient").hook(gasmixture_tick_temperature_gradient);
 	Core::get_proc("/datum/gas_mixture/proc/get_last_share").hook(gasmixture_get_last_share);
 	Core::get_proc("/turf/proc/__update_extools_adjacent_turfs").hook(turf_update_adjacent);
 	Core::get_proc("/turf/proc/update_air_ref").hook(turf_update_air_ref);
