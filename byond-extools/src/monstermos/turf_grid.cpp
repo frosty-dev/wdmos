@@ -588,9 +588,8 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 
 void Tile::explosively_depressurize(int cyclenum) {
 	if (!air) return; // air is very important I think
-
+	const int MONSTERMOS_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_turf_limit);
 	const int MONSTERMOS_HARD_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_hard_turf_limit);
-
 	float total_gases_deleted = 0;
 	uint64_t queue_cycle = ++eq_queue_cycle_ctr;
 	std::vector<Tile*> turfs;
