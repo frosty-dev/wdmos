@@ -52,13 +52,17 @@ break;
 
 void Tile::update_air_ref() {
 	bool isopenturf = turf_ref.get_by_id(str_id_is_openturf).valuef;
-	air = nullptr;
 	if (isopenturf) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
 		if (air_ref.type == DATUM) {
-			air = &get_gas_mixture(air_ref);
-			air_index = get_gas_mixture_index(air_ref);
+			air = get_gas_mixture(air_ref);
 		}
+		else {
+			air.reset();
+		}
+	}
+	else {
+		air.reset();
 	}
 }
 
@@ -73,7 +77,7 @@ void Tile::process_cell(int fire_count) {
 		return;
 	}
 	if (turf_ref.get_by_id(str_id_archived_cycle) < fire_count) {
-		turf_ref.invoke_by_id(str_id_archive,{});
+		archive(fire_count);
 	}
 	SetVariable(turf_ref.type, turf_ref.value, str_id_current_cycle, Value(float(fire_count)));
 
@@ -91,8 +95,7 @@ void Tile::process_cell(int fire_count) {
 		Tile& enemy_tile = *adjacent[i];
 		if (!enemy_tile.air) continue; // having no air is bad I think or something.
 		if (fire_count <= enemy_tile.turf_ref.get_by_id(str_id_current_cycle)) continue;
-		enemy_tile.turf_ref.invoke_by_id(str_id_archive,{});
-
+		enemy_tile.archive(fire_count);
 
 		bool should_share_air = false;
 
@@ -122,16 +125,17 @@ void Tile::process_cell(int fire_count) {
 
 		if (should_share_air) {
 			// if youre like not yogs and youre porting this shit and you hate monstermos and you want spacewind just uncomment this shizz
-			float difference = air->share(*enemy_tile.air, adjacent_turfs_length);
-			if (difference > 0) {
+			/*float difference =*/ air->share(*enemy_tile.air, adjacent_turfs_length);
+			/*if (difference > 0) {
 				turf_ref.invoke_by_id(str_id_consider_pressure_difference, { enemy_tile.turf_ref, difference });
 			}
 			else {
 				enemy_tile.turf_ref.invoke_by_id(str_id_consider_pressure_difference, { turf_ref, -difference });
-			}
+			}*/
 			last_share_check();
 		}
 	}
+
 	if (has_planetary_atmos) {
 		update_planet_atmos();
 		if (air->compare(planet_atmos_info->last_mix)) {
@@ -144,10 +148,10 @@ void Tile::process_cell(int fire_count) {
 			last_share_check();
 		}
 	}
+		
 	turf_ref.get_by_id(str_id_air).invoke_by_id(str_id_react, { turf_ref });
 	turf_ref.invoke_by_id(str_id_update_visuals, {});
-	bool considering_superconductivity = air->get_temperature() > MINIMUM_TEMPERATURE_START_SUPERCONDUCTION && turf_ref.invoke("consider_superconductivity", {Value::True()});
-	if ((!excited_group && considering_superconductivity)
+	if ((!excited_group && !(air->get_temperature() > MINIMUM_TEMPERATURE_START_SUPERCONDUCTION && turf_ref.invoke("consider_superconductivity", {Value::True()})))
 		|| (atmos_cooldown > (EXCITED_GROUP_DISMANTLE_CYCLES * 2))) {
 		SSair.invoke("remove_from_active", { turf_ref });
 	}
@@ -157,8 +161,8 @@ void Tile::update_planet_atmos() {
 
 	if (!planet_atmos_info || planet_atmos_info->last_initial != turf_ref.get_by_id(str_id_initial_gas_mix)) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
-		if (air_ref.type != DATUM || &get_gas_mixture(air_ref) != air) {
-			air = &get_gas_mixture(air_ref);
+		if (air_ref.type != DATUM || get_gas_mixture(air_ref) != air) {
+			air = get_gas_mixture(air_ref);
 			std::string message = (std::string("Air reference in extools doesn't match actual air, or the air is null! Turf ref: ") + std::to_string(turf_ref.value));
 			Runtime((char *)message.c_str()); // ree why doesn't it accept const
 			return;
@@ -187,6 +191,15 @@ void Tile::last_share_check() {
 	}
 }
 
+void Tile::archive(int fire_count) {
+	if (turf_ref.get_by_id(str_id_is_openturf).valuef) {
+		SetVariable(turf_ref.type, turf_ref.value, str_id_archived_cycle, Value(float(fire_count)));
+	}
+	if (air) {
+		air->archive();
+	}
+}
+
 bool cmp_monstermos_pushorder(Tile* a, Tile* b) {
 	float a_mole_delta = a->monstermos_info->mole_delta;
 	float b_mole_delta = b->monstermos_info->mole_delta;
@@ -201,6 +214,8 @@ bool cmp_monstermos_pushorder(Tile* a, Tile* b) {
 }
 
 uint64_t eq_queue_cycle_ctr = 0;
+const int MONSTERMOS_TURF_LIMIT = 200;
+const int MONSTERMOS_HARD_TURF_LIMIT = 2000;
 const int opp_dir_index[] = {1, 0, 3, 2, 5, 4, 6};
 
 void Tile::adjust_eq_movement(int dir_index, float amount) {
@@ -273,9 +288,6 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 	// and that's just the way the math works out in SS13. And there's no reactions going on - hyper-noblium stops all reactions from happening.
 	// I'm pretty sure real gases don't work this way. Oh yeah this property can be used to make bombs too I guess so thats neat
 
-	const int MONSTERMOS_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_turf_limit);
-	const int MONSTERMOS_HARD_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_hard_turf_limit);
-
 	if (!air || (monstermos_info && monstermos_info->last_cycle >= cyclenum)) return; // if we're already done it then piss off.
 
 	if (monstermos_info)
@@ -340,7 +352,7 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 			}
 			adj->monstermos_info->last_queue_cycle = queue_cycle;
 			turfs.push_back(adj);
-			if (adj->air->is_immutable() && adj->air->is_vacuum()) {
+			if (adj->air->is_immutable()) {
 				// Uh oh! looks like someone opened an airlock to space! TIME TO SUCK ALL THE AIR OUT!!!
 				// NOT ONE OF YOU IS GONNA SURVIVE THIS
 				// (I just made explosions less laggy, you're welcome)
@@ -588,8 +600,6 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 
 void Tile::explosively_depressurize(int cyclenum) {
 	if (!air) return; // air is very important I think
-	const int MONSTERMOS_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_turf_limit);
-	const int MONSTERMOS_HARD_TURF_LIMIT = SSair.get_by_id(str_id_monstermos_hard_turf_limit);
 	float total_gases_deleted = 0;
 	uint64_t queue_cycle = ++eq_queue_cycle_ctr;
 	std::vector<Tile*> turfs;
@@ -814,10 +824,8 @@ void ExcitedGroup::self_breakdown(bool space_is_all_consuming) {
 	}
 	breakdown_cooldown = 0;
 }
-
-void remove_from_active(Tile* tile);
-
 void ExcitedGroup::dismantle(bool unexcite) {
+	Value active_turfs = SSair.get_by_id(str_id_active_turfs);
 	int turf_list_size = turf_list.size();
 	for (int i = 0; i < turf_list_size; i++) {
 		Tile* tile = turf_list[i];
@@ -827,9 +835,11 @@ void ExcitedGroup::dismantle(bool unexcite) {
 		}
 	}
 	if (unexcite) {
+		std::vector<Value> turf_refs;
 		for (int i = 0; i < turf_list_size;  i++) {
-			remove_from_active(turf_list[i]);
+			turf_refs.push_back(turf_list[i]->turf_ref);
 		}
+		active_turfs.invoke("Remove", turf_refs);
 	}
 	turf_list.clear();
 }

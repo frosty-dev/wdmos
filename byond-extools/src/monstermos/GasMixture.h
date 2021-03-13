@@ -2,12 +2,12 @@
 
 #include "atmos_defines.h"
 
-#include <vector>
+#define TOTAL_NUM_GASES 21
 
 #define GAS_MIN_MOLES 0.00000005
 #define MINIMUM_HEAT_CAPACITY	0.0003
 
-extern std::vector<float> gas_specific_heat;
+extern float gas_specific_heat[TOTAL_NUM_GASES];
 
 class GasMixture
 {
@@ -15,12 +15,17 @@ class GasMixture
         GasMixture(float volume);
         void mark_immutable();
         inline bool is_immutable() const {return immutable;}
-		inline bool is_vacuum() const {return vacuum;}
 
         float heat_capacity() const;
         float heat_capacity_archived() const;
 		void set_min_heat_capacity(float n);
-        float total_moles() const;
+        inline float total_moles() const { // inlined for debugging reasons
+            float capacity = 0;
+            for (int i = 0; i < TOTAL_NUM_GASES; i++) {
+                capacity += moles[i];
+            }
+            return capacity;
+        }
         float return_pressure() const;
         float thermal_energy() const;
         void archive();
@@ -34,9 +39,6 @@ class GasMixture
 		int compare(GasMixture &sample) const;
 		void clear();
 		void multiply(float multiplier);
-		bool create_temperature_gradient(float a, float b, float c);
-		void tick_temperature_gradient(float step);
-		void mark_vacuum();
 
         inline float get_temperature() const { return temperature; }
         inline void set_temperature(float new_temp) { if(!immutable) temperature = new_temp; }
@@ -48,18 +50,14 @@ class GasMixture
 
     private:
         GasMixture();
-        std::vector<float> moles;
-        std::vector<float> moles_archived;
+        float moles[TOTAL_NUM_GASES];
+        float moles_archived[TOTAL_NUM_GASES];
         float temperature = 0;
         float temperature_archived;
         float volume;
         float last_share = 0;
 		float min_heat_capacity = 0;
         bool immutable = false;
-		bool vacuum = false;
-        float gradient_coeff_a = 0;
-        float gradient_coeff_b = 0;
-        float gradient_coeff_c = 0;
 	// you might thing, "damn, all the gases, wont that use up more memory"?
 	// well no. Let's look at the average gas mixture in BYOND land containing both oxygen and nitrogen:
 	// gases (28+8 bytes)
