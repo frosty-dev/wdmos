@@ -243,19 +243,6 @@ try
 		data["content"] = resp;
 		debugger.send(data);
 	}
-	else if (type == MESSAGE_TOGGLE_PROFILER)
-	{
-		bool enable = data.at("content");
-		if (enable)
-		{
-			Core::enable_profiling();
-		}
-		else
-		{
-			Core::disable_profiling();
-		}
-		debugger.send(data);
-	}
 	else if (type == MESSAGE_CONFIGURATION_DONE)
 	{
 		return HandleMessageResult::CONFIGURATION_DONE;
@@ -386,7 +373,6 @@ void DebugServer::on_breakpoint(ExecutionContext* ctx)
 	{
 		breakpoint_to_restore = bp;
 	}
-	send_call_stacks(ctx);
 	send(MESSAGE_BREAKPOINT_HIT, { {"proc", bp->proc->name }, {"offset", bp->offset }, {"override_id", Core::get_proc(ctx).override_id}, {"reason", "breakpoint opcode"} });
 	on_break(ctx);
 	ctx->current_opcode--;
@@ -395,7 +381,6 @@ void DebugServer::on_breakpoint(ExecutionContext* ctx)
 void DebugServer::on_step(ExecutionContext* ctx, const char* reason)
 {
 	auto& proc = Core::get_proc(ctx);
-	send_call_stacks(ctx);
 	send(MESSAGE_BREAKPOINT_HIT, { {"proc", proc.name }, {"offset", ctx->current_opcode }, {"override_id", proc.override_id}, {"reason", reason} });
 	on_break(ctx);
 }
@@ -434,7 +419,6 @@ void DebugServer::on_break(ExecutionContext* ctx)
 void DebugServer::on_error(ExecutionContext* ctx, const char* error)
 {
 	Core::Proc& p = Core::get_proc(ctx);
-	send_call_stacks(ctx);
 	debug_server.send(MESSAGE_RUNTIME, { {"proc", p.name }, {"offset", ctx->current_opcode }, {"override_id", p.override_id}, {"message", std::string(error)} });
 	debug_server.wait_for_action();
 }
@@ -549,38 +533,6 @@ nlohmann::json frame_to_json(ExecutionContext* frame)
 		arg_names.push_back(p.get_param_name(i));
 	j["arg_names"] = arg_names;
 	return j;
-}
-
-void DebugServer::send_call_stacks(ExecutionContext* ctx)
-{
-	std::vector<nlohmann::json> current_frames;
-	do
-	{
-		current_frames.push_back(frame_to_json(ctx));
-	} while(ctx = ctx->parent_context);
-	
-
-	std::vector<nlohmann::json> suspended;
-	for (uint32_t i = Core::suspended_proc_list->front; i < Core::suspended_proc_list->back; i++)
-	{
-		std::vector<nlohmann::json> frames;
-		ProcConstants* inst = Core::suspended_proc_list->buffer[i];
-
-		for (ExecutionContext* ctx = inst->context; ctx != nullptr; ctx = ctx->parent_context)
-		{
-			frames.push_back(frame_to_json(ctx));
-		}
-
-		// Suspended procs have their call stack flipped, so we have to reverse it to see something sane
-		std::reverse(frames.begin(), frames.end());
-		
-		suspended.push_back(frames);
-	}
-
-	nlohmann::json stacks;
-	stacks["current"] = current_frames;
-	stacks["suspended"] = suspended;
-	debug_server.send(MESSAGE_CALL_STACK, stacks);
 }
 
 void on_nop(ExecutionContext* ctx)
