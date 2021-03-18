@@ -21,11 +21,11 @@ Reaction::Reaction(Value v)
     auto proc = Core::try_get_proc(Core::stringify(v.get("type")) + "/react");
     if(!proc)
     {
-        Core::alert_dd("Could not find proc for reaction! " + Core::stringify(v.get("type")) + "/react");
+        Core::alert_dd("ПРОЁБ-ПРОЁБ: " + Core::stringify(v.get("type")) + "/react");
     }
     else
     {
-        Core::alert_dd("Found proc for reaction: " + Core::stringify(v.get("type")) + "/react");
+        Core::alert_dd("РЕАКЦИЯ: " + Core::stringify(v.get("type")) + "/react");
     }
     proc_id = proc->id;
 }
