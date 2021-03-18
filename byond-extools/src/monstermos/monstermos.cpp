@@ -486,7 +486,7 @@ void initialize_gas_overlays() {
 		}
 	}
 }
-/*
+
 trvh SSair_update_gas_reactions(unsigned int args_len, Value* args, Value src) {
 	Container gas_reactions = SSair.get("gas_reactions");
 	cached_reactions.reserve(gas_reactions.length());
@@ -499,7 +499,7 @@ trvh SSair_update_gas_reactions(unsigned int args_len, Value* args, Value src) {
 	[](auto& a, auto& b) { return a.get_priority() > b.get_priority(); });
 	return Value::Null();
 }
-*/
+
 trvh SSair_update_ssair(unsigned int args_len, Value* args, Value src) {
 	SSair = src;
 	initialize_gas_overlays();
@@ -641,7 +641,7 @@ const char* enable_monstermos()
 	Core::get_proc("/datum/controller/subsystem/air/proc/process_excited_groups_extools").hook(SSair_process_excited_groups);
 	Core::get_proc("/datum/controller/subsystem/air/proc/get_amt_excited_groups").hook(SSair_get_amt_excited_groups);
 	Core::get_proc("/datum/controller/subsystem/air/proc/extools_update_ssair").hook(SSair_update_ssair);
-	/*Core::get_proc("/datum/controller/subsystem/air/proc/extools_update_reactions").hook(SSair_update_gas_reactions);*/
+	Core::get_proc("/datum/controller/subsystem/air/proc/extools_update_reactions").hook(SSair_update_gas_reactions);
 
 	all_turfs.refresh();
 	return "ok";
