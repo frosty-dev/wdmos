@@ -10,6 +10,8 @@
 
 extern std::vector<Value> gas_id_to_type;
 
+extern int total_num_gases;
+
 class Reaction
 {
     public:
