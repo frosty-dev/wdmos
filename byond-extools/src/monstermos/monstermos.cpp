@@ -13,8 +13,6 @@
 
 #include <execution>
 
-#include <unordered_set>
-
 #include <iterator>
 
 using namespace monstermos::constants;
@@ -38,29 +36,6 @@ int str_id_times_fired;
 int total_num_gases = 0;
 std::vector<float> gas_moles_visible;
 std::vector < std::vector<Value> > gas_overlays;
-
-std::vector<Tile*> active_turfs;
-
-std::vector<Tile*> active_turfs_currentrun;
-
-void add_to_active(Tile* tile)
-{
-	auto pos = std::lower_bound(active_turfs.begin(),active_turfs.end(),tile);
-	active_turfs.insert(pos,tile);
-}
-
-void remove_from_active(Tile* tile)
-{
-	auto iters = std::equal_range(active_turfs.begin(),active_turfs.end(),tile);
-	if(iters.first != active_turfs.end())
-	{
-		active_turfs.erase(iters.first,iters.second);
-	}
-}
-void clear_active_turfs()
-{
-	active_turfs.clear();
-}
 
 size_t get_gas_mixture_index(Value val)
 {
@@ -89,7 +64,6 @@ trvh gasmixture_register(unsigned int args_len, Value* args, Value src)
 		if(gas_mixtures.capacity() > original_capacity)
 		{
 			all_turfs.refresh();
-			clear_active_turfs();
 		}
 	}
 	else
@@ -548,9 +522,36 @@ trvh SSair_get_amt_excited_groups(unsigned int args_len, Value* args, Value src)
 	return Value(excited_groups.size());
 }
 
+#include <unordered_set>
+
+std::unordered_set<Tile*> active_turfs;
+
+std::unordered_set<Tile*>::iterator active_turfs_currentrun_pos = active_turfs.begin();
+
+void add_to_active(Tile* tile)
+{
+	auto prev_bucket_count = active_turfs.bucket_count();
+	active_turfs.insert(tile);
+	if(active_turfs.bucket_count() > prev_bucket_count || active_turfs.size() == 1) //the iterators are invalidated--start over
+	{
+		active_turfs_currentrun_pos = active_turfs.begin();
+	}
+}
+
+void remove_from_active(Tile* tile)
+{
+	auto found = active_turfs.equal_range(tile);
+	if(found.first != active_turfs.end())
+	{
+		auto active_erase = active_turfs.erase(found.first);
+		if(found.first == active_turfs_currentrun_pos) active_turfs_currentrun_pos = active_erase;
+	}
+}
+
 trvh SSair_clear_active_turfs(unsigned int args_len, Value* args, Value src)
 {
-	clear_active_turfs();
+	active_turfs.clear();
+	active_turfs_currentrun_pos = active_turfs.begin();
 	return Value::Null();
 }
 
@@ -600,13 +601,13 @@ trvh SSair_process_active_turfs(unsigned args_len,Value* args,Value src)
 
 	int fire_count = SSair.get_by_id(str_id_times_fired);
 	if (!args[0]) {
-		active_turfs_currentrun = active_turfs;
+		active_turfs_currentrun_pos = active_turfs.begin();
 	}
-	while(!active_turfs_currentrun.empty())
+	while(active_turfs_currentrun_pos != active_turfs.end())
 	{
-		auto tile = active_turfs_currentrun.back();
-		active_turfs_currentrun.pop_back();
+		auto tile = *active_turfs_currentrun_pos;
 		tile->process_cell(fire_count);
+		active_turfs_currentrun_pos++;
 		if (checker.peek() > time_limit) {
 			return Value::True();
 		}
@@ -622,13 +623,13 @@ trvh SSair_process_equalize_turfs(unsigned args_len,Value* args,Value src)
 
 	int fire_count = SSair.get_by_id(str_id_times_fired);
 	if (!args[0]) {
-		active_turfs_currentrun = active_turfs;
+		active_turfs_currentrun_pos = active_turfs.begin();
 	}
-	while(!active_turfs_currentrun.empty())
+	while(active_turfs_currentrun_pos != active_turfs.end())
 	{
-		auto tile = active_turfs_currentrun.back();
-		active_turfs_currentrun.pop_back();
+		auto tile = *active_turfs_currentrun_pos;
 		tile->equalize_pressure_in_zone(fire_count);
+		active_turfs_currentrun_pos++;
 		if (checker.peek() > time_limit) {
 			return Value::True();
 		}
@@ -639,6 +640,8 @@ trvh SSair_process_equalize_turfs(unsigned args_len,Value* args,Value src)
 trvh refresh_atmos_grid(unsigned int args_len, Value* args, Value src)
 {
 	all_turfs.refresh();
+	active_turfs.clear();
+	active_turfs_currentrun_pos = active_turfs.begin();
 	return Value::Null();
 }
 
@@ -681,6 +684,12 @@ trvh SSair_update_ssair(unsigned int args_len, Value* args, Value src) {
 	initialize_gas_overlays();
 	return Value::Null();
 }
+
+long long react_check_benchmark = 0;
+
+long long react_total_benchmark = 0;
+
+long reacts_done = 0;
 
 trvh gasmixture_react(unsigned int args_len, Value* args, Value src)
 {
@@ -731,12 +740,10 @@ int str_id_monstermos_turf_limit, str_id_monstermos_hard_turf_limit;
 const char* enable_monstermos()
 {
 	oDelDatum = (DelDatumPtr)Core::install_hook((void*)DelDatum, (void*)hDelDatum);
-	active_turfs.clear();
 	gas_mixtures.clear();
 	next_gas_ids.clear();
 	// if we don't do this, it'll reallocate too often. please do this.
 	gas_mixtures.reserve(200000);
-	active_turfs.reserve(20000); //80 kb
 	// get the var IDs for SANIC SPEED
 	str_id_air = Core::GetStringId("air", true);
 	str_id_atmosadj = Core::GetStringId("atmos_adjacent_turfs", true);
