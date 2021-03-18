@@ -75,7 +75,7 @@ std::unordered_map<std::string, Value> Value::get_all_vars()
 	for (int i = 0; i < len; i++)
 	{
 		const std::string& varname = vars.at(i);
-		vals.at(varname) = get(varname);
+		vals[varname] = get(varname);
 	}
 	return vals;
 }
