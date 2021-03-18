@@ -612,7 +612,7 @@ trvh SSair_process_active_turfs(unsigned args_len,Value* args,Value src)
 			return Value::True();
 		}
 	}
-	return Value(checker.peek() > time_limit);
+	return Value::False();
 }
 
 trvh SSair_process_equalize_turfs(unsigned args_len,Value* args,Value src)
@@ -634,7 +634,7 @@ trvh SSair_process_equalize_turfs(unsigned args_len,Value* args,Value src)
 			return Value::True();
 		}
 	}
-	return Value(checker.peek() > time_limit);
+	return Value::False();
 }
 
 trvh refresh_atmos_grid(unsigned int args_len, Value* args, Value src)
