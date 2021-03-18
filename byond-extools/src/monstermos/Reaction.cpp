@@ -9,7 +9,7 @@ Reaction::Reaction(Value v)
     List min_reqs = v.get("min_requirements");
     if(min_reqs.at("TEMP").type == DataType::NUMBER) min_temp_req = min_reqs.at("TEMP");
     if(min_reqs.at("ENER").type == DataType::NUMBER) min_ener_req = min_reqs.at("ENER");
-    for(unsigned int i=0;i < total_num_gases;i++)
+    for(unsigned int i=0;i < TOTAL_NUM_GASES;i++)
     {
         auto gasReq = min_reqs.at(gas_id_to_type[i]);
         if(gasReq.type == DataType::NUMBER)
