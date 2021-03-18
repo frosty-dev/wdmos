@@ -13,29 +13,6 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS_WHITE "-Ofast -gline-tables-only -march=skylake -flto" CACHE STRING
-    "C++ flags for White use."
-    FORCE
-)
-set(CMAKE_C_FLAGS_WHITE "-Ofast -gline-tables-only -march=skylake -flto" CACHE STRING
-    "C flags for White use."
-    FORCE
-)
-set(CMAKE_EXE_LINKER_FLAGS_WHITE
-  "" CACHE STRING
-  "Linker flags for White use."
-  FORCE)
-set(CMAKE_SHARED_LINKER_FLAGS_WHITE
-  "" CACHE STRING
-  "Shared libraries linker flags for White use."
-  FORCE)
-
-mark_as_advanced(
-  CMAKE_CXX_FLAGS_WHITE
-  CMAKE_C_FLAGS_WHITE
-  CMAKE_EXE_LINKER_FLAGS_WHITE
-  CMAKE_SHARED_LINKER_FLAGS_WHITE)
-
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 if (WIN32)
     file(GLOB_RECURSE SRC_FILES
