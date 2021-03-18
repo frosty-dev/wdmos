@@ -106,7 +106,7 @@ Disassembly Core::Proc::disassemble()
 Core::Proc& Core::get_proc(std::string name, unsigned int override_id)
 {
 	strip_proc_path(name);
-	Core::Alert("Attempting to get proc " + name + ", ass " + std::to_string(procs_by_name.at(name).at(override_id)));
+	Core::Alert("Attempting to get proc " + name + ", override " + std::to_string(override_id));
 	return procs_by_id.at(procs_by_name.at(name).at(override_id));
 }
 
