@@ -543,8 +543,9 @@ void remove_from_active(Tile* tile)
 	auto found = active_turfs.equal_range(tile);
 	if(found.first != active_turfs.end())
 	{
+		auto replace = found.first == active_turfs_currentrun_pos;
 		auto active_erase = active_turfs.erase(found.first);
-		if(found.first == active_turfs_currentrun_pos) active_turfs_currentrun_pos = active_erase;
+		if(replace) active_turfs_currentrun_pos = active_erase;
 	}
 }
 
