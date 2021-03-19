@@ -543,9 +543,8 @@ void remove_from_active(Tile* tile)
 	auto found = active_turfs.equal_range(tile);
 	if(found.first != active_turfs.end())
 	{
-		auto replace = found.first == active_turfs_currentrun_pos;
 		auto active_erase = active_turfs.erase(found.first);
-		if(replace) active_turfs_currentrun_pos = active_erase;
+		if(found.first == active_turfs_currentrun_pos) active_turfs_currentrun_pos = active_erase;
 	}
 }
 
@@ -608,7 +607,7 @@ trvh SSair_process_active_turfs(unsigned args_len,Value* args,Value src)
 	{
 		auto tile = *active_turfs_currentrun_pos;
 		tile->process_cell(fire_count);
-		active_turfs_currentrun_pos++;
+		//active_turfs_currentrun_pos++;
 		if (checker.peek() > time_limit) {
 			return Value::True();
 		}
