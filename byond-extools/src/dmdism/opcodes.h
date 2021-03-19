@@ -1,8 +1,8 @@
 #pragma once
 
 #include <unordered_map>
-#include "../core/byond_constants.h"
 #include <string>
+#include "../core/byond_constants.h"
 
 // Opaque declaration and additional constants for the most important values,
 // to save on recompiling lots of .cpp files every time the table is modified.

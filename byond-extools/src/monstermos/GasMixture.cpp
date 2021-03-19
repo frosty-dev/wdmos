@@ -4,48 +4,37 @@
 #include <cstring>
 #include <cmath>
 
-#include <vector>
-#include <numeric>
-
 using namespace monstermos::constants;
 
-std::vector<float> gas_specific_heat;
-extern int total_num_gases;
+float gas_specific_heat[TOTAL_NUM_GASES];
 
 GasMixture::GasMixture(float v)
 {
     if(v < 0) v = 0;
     volume = v;
-    moles.resize(total_num_gases);
-    moles_archived.resize(total_num_gases);
+    memset(moles, 0, sizeof(moles));
 }
 
 GasMixture::GasMixture() {}
-
-float GasMixture::total_moles() const {
-    return std::reduce(moles.cbegin(),moles.cend());
-}
 
 void GasMixture::mark_immutable() {
     immutable = true;
 }
 
 float GasMixture::heat_capacity() const {
-    return std::max(
-        (float)std::transform_reduce(
-            moles.cbegin(),moles.cend(),
-            gas_specific_heat.cbegin(),
-            0.0),
-        min_heat_capacity);
+    float capacity = 0;
+    for(int i = 0; i < TOTAL_NUM_GASES; i++) {
+        capacity += (gas_specific_heat[i] * moles[i]);
+    }
+    return std::max(capacity, min_heat_capacity);
 }
 
 float GasMixture::heat_capacity_archived() const {
-    return std::max(
-        (float)std::transform_reduce(
-            moles_archived.cbegin(),moles_archived.cend(),
-            gas_specific_heat.cbegin(),
-            0.0), 
-        min_heat_capacity);
+    float capacity = 0;
+    for(int i = 0; i < TOTAL_NUM_GASES; i++) {
+        capacity += (gas_specific_heat[i] * moles_archived[i]);
+    }
+    return std::max(capacity, min_heat_capacity);
 }
 
 void GasMixture::set_min_heat_capacity(float n) {
@@ -63,7 +52,7 @@ float GasMixture::thermal_energy() const {
 }
 
 void GasMixture::archive() {
-    moles_archived = moles;
+    memcpy(moles_archived, moles, sizeof(moles));
     temperature_archived = temperature;
 }
 
@@ -77,11 +66,9 @@ void GasMixture::merge(const GasMixture &giver) {
 			temperature = (giver.temperature * giver_heat_capacity + temperature * self_heat_capacity) / combined_heat_capacity;
         }
     }
-    std::transform(
-        moles.begin(),moles.end(),
-        giver.moles.cbegin(),
-        moles.begin(),
-        std::plus<float>());
+    for(int i = 0; i < TOTAL_NUM_GASES; i++) {
+        moles[i] += giver.moles[i];
+    }
 }
 
 GasMixture GasMixture::remove(float amount) {
@@ -94,34 +81,25 @@ GasMixture GasMixture::remove_ratio(float ratio) {
 
     if(ratio > 1) ratio = 1;
 
-    auto removed = GasMixture(volume);
+    GasMixture removed;
+    removed.volume = volume;
     removed.temperature = temperature;
-    std::transform(
-        moles.begin(),moles.end(),
-        removed.moles.begin(),
-        [&ratio](auto& gas) {
-            if(gas < GAS_MIN_MOLES) {
-                return (float)(0.0);
-            } else {
-                return gas * ratio;
+    for(int i = 0; i < TOTAL_NUM_GASES; i++) {
+        if(moles[i] < GAS_MIN_MOLES) {
+            removed.moles[i] = 0;
+        } else {
+            float removed_moles = (removed.moles[i] = (moles[i] * ratio));
+            if(!immutable) {
+                moles[i] -= removed_moles;
             }
-        });
-    if(!immutable)
-    {
-        std::transform(
-        moles.begin(),moles.end(),
-        removed.moles.begin(),
-        moles.begin(),
-        [&ratio](auto& myGas,auto& removedGas) {
-            return myGas-removedGas;
-        });
+        }
     }
     return removed;
 }
 
 void GasMixture::copy_from_mutable(const GasMixture &sample) {
     if(immutable) return;
-    moles = sample.moles;
+    memcpy(moles, sample.moles, sizeof(moles));
     temperature = sample.temperature;
 }
 
@@ -138,12 +116,11 @@ float GasMixture::share(GasMixture &sharer, int atmos_adjacent_turfs) {
     float heat_capacity_sharer_to_self = 0;
     float moved_moles = 0;
     float abs_moved_moles = 0;
-    auto capacities = gas_specific_heat; // cache for sanic speed (yeah, seriously)
-    for(int i = 0; i < moles.size(); i++) {
+    for(int i = 0; i < TOTAL_NUM_GASES; i++) {
         float delta = (moles_archived[i] - sharer.moles_archived[i])/(atmos_adjacent_turfs+1);
         if(std::abs(delta) >= GAS_MIN_MOLES) {
             if((abs_temperature_delta > MINIMUM_TEMPERATURE_DELTA_TO_CONSIDER)) {
-                float gas_heat_capacity = delta * capacities[i];
+                float gas_heat_capacity = delta * gas_specific_heat[i];
                 if(delta > 0) {
                     heat_capacity_self_to_sharer += gas_heat_capacity;
                 } else {
@@ -181,7 +158,7 @@ float GasMixture::share(GasMixture &sharer, int atmos_adjacent_turfs) {
     }
     if(temperature_delta > MINIMUM_TEMPERATURE_TO_MOVE || std::abs(moved_moles) > MINIMUM_MOLES_DELTA_TO_MOVE) {
 		float our_moles = total_moles();
-		float their_moles = sharer.total_moles();
+		float their_moles = sharer.total_moles();;
 		return (temperature_archived*(our_moles + moved_moles) - sharer.temperature_archived*(their_moles - moved_moles)) * R_IDEAL_GAS_EQUATION / volume;
     }
     return 0;
@@ -204,8 +181,7 @@ float GasMixture::temperature_share(GasMixture &sharer, float conduction_coeffic
     return sharer.temperature;
 }
 
-float GasMixture::temperature_share(float conduction_coefficient,float sharer_temperature,float sharer_heat_capacity)
-{
+float GasMixture::temperature_share(float conduction_coefficient,float sharer_temperature,float sharer_heat_capacity) {
     float temperature_delta = temperature_archived - sharer_temperature;
     if(std::abs(temperature_delta) > MINIMUM_TEMPERATURE_DELTA_TO_CONSIDER) {
         float self_heat_capacity = heat_capacity_archived();
@@ -222,7 +198,7 @@ float GasMixture::temperature_share(float conduction_coefficient,float sharer_te
 
 int GasMixture::compare(GasMixture &sample) const {
 	float our_moles = 0;
-	for (int i = 0; i < moles.size(); i++) {
+	for (int i = 0; i < TOTAL_NUM_GASES; i++) {
 		float gas_moles = moles[i];
 		float delta = std::abs(gas_moles - sample.moles[i]);
 		if (delta > MINIMUM_MOLES_DELTA_TO_MOVE && (delta > gas_moles * MINIMUM_AIR_RATIO_TO_MOVE)) {
@@ -241,15 +217,12 @@ int GasMixture::compare(GasMixture &sample) const {
 
 void GasMixture::clear() {
 	if (immutable) return;
-	std::fill(moles.begin(),moles.end(),(float)0.0);
+	memset(moles, 0, sizeof(moles));
 }
 
 void GasMixture::multiply(float multiplier) {
 	if (immutable) return;
-	std::transform(
-        moles.begin(),moles.end(),
-        moles.begin(),
-        [&multiplier](auto& gas) {
-            return gas*multiplier;
-        });
+	for (int i = 0; i < TOTAL_NUM_GASES; i++) {
+		moles[i] *= multiplier;
+	}
 }

@@ -52,13 +52,17 @@ break;
 
 void Tile::update_air_ref() {
 	bool isopenturf = turf_ref.get_by_id(str_id_is_openturf).valuef;
-	air = nullptr;
 	if (isopenturf) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
 		if (air_ref.type == DATUM) {
-			air = &get_gas_mixture(air_ref);
-			air_index = get_gas_mixture_index(air_ref);
+			air = get_gas_mixture(air_ref);
 		}
+		else {
+			air.reset();
+		}
+	}
+	else {
+		air.reset();
 	}
 }
 
@@ -93,7 +97,6 @@ void Tile::process_cell(int fire_count) {
 		if (fire_count <= enemy_tile.turf_ref.get_by_id(str_id_current_cycle)) continue;
 		enemy_tile.turf_ref.invoke_by_id(str_id_archive,{});
 
-
 		bool should_share_air = false;
 
 		if (excited_group && enemy_tile.excited_group) {
@@ -122,7 +125,7 @@ void Tile::process_cell(int fire_count) {
 
 		if (should_share_air) {
 			// if youre like not yogs and youre porting this shit and you hate monstermos and you want spacewind just uncomment this shizz
-			/*float difference = */air->share(*enemy_tile.air, adjacent_turfs_length);
+			/*float difference =*/ air->share(*enemy_tile.air, adjacent_turfs_length);
 			/*if (difference > 0) {
 				turf_ref.invoke_by_id(str_id_consider_pressure_difference, { enemy_tile.turf_ref, difference });
 			}
@@ -132,6 +135,7 @@ void Tile::process_cell(int fire_count) {
 			last_share_check();
 		}
 	}
+
 	if (has_planetary_atmos) {
 		update_planet_atmos();
 		if (air->compare(planet_atmos_info->last_mix)) {
@@ -144,12 +148,13 @@ void Tile::process_cell(int fire_count) {
 			last_share_check();
 		}
 	}
-	int reacted = (Value)gasmixture_react(1,&turf_ref,turf_ref.get_by_id(str_id_air));
+		
+	turf_ref.get_by_id(str_id_air).invoke_by_id(str_id_react, { turf_ref });
 	turf_ref.invoke_by_id(str_id_update_visuals, {});
 	bool considering_superconductivity = air->get_temperature() > MINIMUM_TEMPERATURE_START_SUPERCONDUCTION && turf_ref.invoke("consider_superconductivity", {Value::True()});
-	if ((!reacted && !excited_group && considering_superconductivity)
+		if ((!excited_group && considering_superconductivity)
 		|| (atmos_cooldown > (EXCITED_GROUP_DISMANTLE_CYCLES * 2))) {
-		remove_from_active(this);
+		SSair.invoke("remove_from_active", { turf_ref });
 	}
 }
 
@@ -157,8 +162,8 @@ void Tile::update_planet_atmos() {
 
 	if (!planet_atmos_info || planet_atmos_info->last_initial != turf_ref.get_by_id(str_id_initial_gas_mix)) {
 		Value air_ref = turf_ref.get_by_id(str_id_air);
-		if (air_ref.type != DATUM || &get_gas_mixture(air_ref) != air) {
-			air = &get_gas_mixture(air_ref);
+		if (air_ref.type != DATUM || get_gas_mixture(air_ref) != air) {
+			air = get_gas_mixture(air_ref);
 			std::string message = (std::string("Air reference in extools doesn't match actual air, or the air is null! Turf ref: ") + std::to_string(turf_ref.value));
 			Runtime((char *)message.c_str()); // ree why doesn't it accept const
 			return;
@@ -343,7 +348,6 @@ void Tile::equalize_pressure_in_zone(int cyclenum) {
 				// Uh oh! looks like someone opened an airlock to space! TIME TO SUCK ALL THE AIR OUT!!!
 				// NOT ONE OF YOU IS GONNA SURVIVE THIS
 				// (I just made explosions less laggy, you're welcome)
-				turfs.push_back(adj);
 				explosively_depressurize(cyclenum);
 				return;
 			}
@@ -724,7 +728,7 @@ void TurfGrid::refresh() {
 				int index = (x - 1) + new_maxx * (y - 1 + new_maxy * (z - 1));
 				Tile &tile = new_tiles[index];
 				if (x <= maxx && y <= maxy && z <= maxz) {
-					tile = std::move(*get(x, y, z));
+					tile = std::move(*get(x,y,z));
 					tile.excited_group.reset(); // excited group contains hanging pointers now (well they're not hanging yet, but they *will* be!)
 					tile.monstermos_info.reset(); // this also has hanging pointers.
 				}
@@ -812,10 +816,8 @@ void ExcitedGroup::self_breakdown(bool space_is_all_consuming) {
 	}
 	breakdown_cooldown = 0;
 }
-
-void remove_from_active(Tile* tile);
-
 void ExcitedGroup::dismantle(bool unexcite) {
+	Value active_turfs = SSair.get_by_id(str_id_active_turfs);
 	int turf_list_size = turf_list.size();
 	for (int i = 0; i < turf_list_size; i++) {
 		Tile* tile = turf_list[i];
@@ -825,9 +827,11 @@ void ExcitedGroup::dismantle(bool unexcite) {
 		}
 	}
 	if (unexcite) {
+		std::vector<Value> turf_refs;
 		for (int i = 0; i < turf_list_size;  i++) {
-			remove_from_active(turf_list[i]);
+			turf_refs.push_back(turf_list[i]->turf_ref);
 		}
+		active_turfs.invoke("Remove", turf_refs);
 	}
 	turf_list.clear();
 }
