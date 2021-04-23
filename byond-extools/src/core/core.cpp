@@ -92,7 +92,7 @@ bool Core::initialize()
 	{
 		return true;
 	}
-	initialized = verify_compat() && find_functions() && populate_proc_list() && hook_custom_opcodes();
+	initialized = find_functions() && populate_proc_list() && hook_custom_opcodes();
 	//Core::codecov_executed_procs.resize(Core::get_all_procs().size());
 	return initialized;
 }
