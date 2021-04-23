@@ -20,6 +20,7 @@ bool Core::verify_compat()
 	IMPORT_OR_DIE(GetByondBuild, "?GetByondBuild@ByondLib@@QAEJXZ");
 	IMPORT_OR_DIE(StdDefDM, "?StdDefDM@DungBuilder@@QAEPADXZ");
 #else
+	Core::Alert("FAILED TO CUM");
 	IMPORT_OR_DIE(GetByondVersion, "_ZN8ByondLib15GetByondVersionEv");
 	IMPORT_OR_DIE(GetByondBuild, "_ZN8ByondLib13GetByondBuildEv");
 	IMPORT_OR_DIE(StdDefDM, "_ZN11DungBuilder8StdDefDMEv");
