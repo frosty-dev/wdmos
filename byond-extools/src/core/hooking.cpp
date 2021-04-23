@@ -125,7 +125,7 @@ bool Core::hook_custom_opcodes() {
 	oStartTiming = install_hook(StartTiming, hStartTiming);
 	if (!(oCrashProc && oCallGlobalProc && oTopicFloodCheck && oStartTiming)) {
 		Core::Alert("Failed to install hooks!");
-		return false;
+		return true;
 	}
 	return true;
 }
