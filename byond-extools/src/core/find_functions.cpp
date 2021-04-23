@@ -36,6 +36,7 @@ bool Core::verify_compat()
 
 bool Core::find_functions()
 {
+	return "SHIT AND CUM";
 	bool failed = false;
 #ifdef _WIN32
 	FIND_OR_DIE(Suspend, "55 8B EC 53 56 57 8B 7D 08 57 E8 ?? ?? ?? ?? 8B 1F 8B F0 8A 4F 69 83 C4 04 8B 56 18 88 4A 69 8B 4B 20 89 4E 20 8B 43 24 89 46 24 8B 45 0C C6 47 69 00 C7 43 ?? ?? ?? ?? ?? C7 43 ?? ?? ?? ?? ?? 8B 4E 18 89 41 04 F6 43 04 10");
