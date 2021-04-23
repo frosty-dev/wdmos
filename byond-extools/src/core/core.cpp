@@ -92,7 +92,7 @@ bool Core::initialize()
 	{
 		return true;
 	}
-	initialized = find_functions() && populate_proc_list() && hook_custom_opcodes();
+	initialized = verify_compat() && find_functions() && populate_proc_list() && hook_custom_opcodes();
 	//Core::codecov_executed_procs.resize(Core::get_all_procs().size());
 	return initialized;
 }
@@ -123,7 +123,6 @@ unsigned int Core::GetStringId(std::string str, bool increment_refcount) {
 			return idx; //this could cause memory problems with a lot of long strings but otherwise they get garbage collected after first use.
 		}
 		case 513:
-		case 514:
 			return GetStringTableIndexUTF8(str.c_str(), 0xFFFFFFFF, 0, 1);
 		default: break;
 	}
