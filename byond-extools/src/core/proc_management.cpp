@@ -145,6 +145,7 @@ Disassembly Core::disassemble_raw(std::vector<int> bytecode)
 
 bool Core::populate_proc_list()
 {
+	Core::Alert("POP");
 	unsigned int i = 0;
 	while (true)
 	{
@@ -171,6 +172,7 @@ bool Core::populate_proc_list()
 		procs_by_id.push_back(std::move(p));
 		i++;
 	}
+	Core::Alert("POP DONE");
 	return true;
 }
 
