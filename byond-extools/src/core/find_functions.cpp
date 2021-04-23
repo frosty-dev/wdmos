@@ -133,7 +133,7 @@ bool Core::find_functions()
 	FIND_OR_DIE(GetAssocElement, "55 89 E5 83 EC ?? 89 4D C4 B9 7B 00 00 00 89 5D F4 89 D3 89 75 F8 89 C6 89 D0 8B 55 C4 89 7D FC C7 44 24 04 00 00 00 00 C7 04 24 00 00 00 00 E8 ?? ?? ?? ?? 3D FF FF 00 00"); // regparm3
 	FIND_OR_DIE(SetVariable, "55 89 E5 81 EC A8 00 00 00 8B 55 ?? 89 5D ?? 8B 4D ?? 89 7D ?? 8B 5D ??");
 	FIND_OR_DIE(GetStringTableIndexUTF8, "55 89 E5 57 56 89 CE 53 89 D3 83 EC ?? 8B 55 ?? 85 C0") // regparm3
-
+	if(failed) return false;
 
 	datum_pointer_table_length = *(unsigned int**)((char*)DelDatum + 12);
 	datum_pointer_table = *(RawDatum****)((char*)DelDatum + 20);
