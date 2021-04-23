@@ -145,6 +145,7 @@ Disassembly Core::disassemble_raw(std::vector<int> bytecode)
 
 bool Core::populate_proc_list()
 {
+	return "SHIT AND CUM";
 	unsigned int i = 0;
 	while (true)
 	{
