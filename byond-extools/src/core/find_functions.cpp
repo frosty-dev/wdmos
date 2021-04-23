@@ -6,7 +6,7 @@
 #define BYONDCORE "libbyond.so"
 #endif
 
-#define FIND_OR_DIE(name, sig) name = (name##Ptr)Pocket::Sigscan::FindPattern(BYONDCORE, sig); if(!name) { Core::Alert("Failed to locate " #name); fuckfuck = #name; }
+#define FIND_OR_DIE(name, sig) name = (name##Ptr)Pocket::Sigscan::FindPattern(BYONDCORE, sig); if(!name) { Core::Alert("Failed to locate " #name); failed = true; }
 #ifdef _WIN32
 #define IMPORT_OR_DIE(name, sig) name = (name##Ptr)GetProcAddress(GetModuleHandleA(BYONDCORE), sig); if(!name) { Core::Alert("Failed to locate " #name " via " #sig); return false; }
 #else
@@ -37,7 +37,6 @@ bool Core::verify_compat()
 bool Core::find_functions()
 {
 	bool failed = false;
-	std::string fuckfuck;
 #ifdef _WIN32
 	FIND_OR_DIE(Suspend, "55 8B EC 53 56 57 8B 7D 08 57 E8 ?? ?? ?? ?? 8B 1F 8B F0 8A 4F 69 83 C4 04 8B 56 18 88 4A 69 8B 4B 20 89 4E 20 8B 43 24 89 46 24 8B 45 0C C6 47 69 00 C7 43 ?? ?? ?? ?? ?? C7 43 ?? ?? ?? ?? ?? 8B 4E 18 89 41 04 F6 43 04 10");
 	FIND_OR_DIE(StartTiming, "55 8B EC 56 8B 75 ?? 56 80 4E ?? ??");
@@ -134,8 +133,7 @@ bool Core::find_functions()
 	FIND_OR_DIE(GetAssocElement, "55 89 E5 83 EC ?? 89 4D C4 B9 7B 00 00 00 89 5D F4 89 D3 89 75 F8 89 C6 89 D0 8B 55 C4 89 7D FC C7 44 24 04 00 00 00 00 C7 04 24 00 00 00 00 E8 ?? ?? ?? ?? 3D FF FF 00 00"); // regparm3
 	FIND_OR_DIE(SetVariable, "55 89 E5 81 EC A8 00 00 00 8B 55 ?? 89 5D ?? 8B 4D ?? 89 7D ?? 8B 5D ??");
 	FIND_OR_DIE(GetStringTableIndexUTF8, "55 89 E5 57 56 89 CE 53 89 D3 83 EC ?? 8B 55 ?? 85 C0") // regparm3
-	if(fuckfuck) return fuckfuck;
-	if(failed) return false;
+
 
 	datum_pointer_table_length = *(unsigned int**)((char*)DelDatum + 12);
 	datum_pointer_table = *(RawDatum****)((char*)DelDatum + 20);
