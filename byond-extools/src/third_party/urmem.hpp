@@ -1,26 +1,26 @@
 /*
-https://github.com/urShadow/urmem
-
-Copyright (c) 2016 urShadow
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2021 katursis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #ifndef URMEM_H_
 #define URMEM_H_
@@ -41,55 +41,22 @@ SOFTWARE.
 #include <memory>
 #include <mutex>
 
-namespace urmem_invoker {
+class urmem {
+public:
     using address_t = unsigned long;
+    using byte_t = unsigned char;
+    using bytearray_t = std::vector<byte_t>;
+
     enum class calling_convention {
         cdeclcall,
         stdcall,
         thiscall
     };
 
-#ifdef _WIN32
-    template<calling_convention>
-    struct invoker;
-
-    template<>
-    struct invoker<calling_convention::cdeclcall> {
-        template<typename Ret, typename ... Args>
-        static inline Ret call(address_t address, Args ... args) {
-            return (reinterpret_cast<Ret(__cdecl *)(Args...)>(address))(args...);
-        }
-    };
-
-    template<>
-    struct invoker<calling_convention::stdcall> {
-        template<typename Ret, typename ... Args>
-        static inline Ret call(address_t address, Args ... args) {
-            return (reinterpret_cast<Ret(__stdcall *)(Args...)>(address))(args...);
-        }
-    };
-
-    template<>
-    struct invoker<calling_convention::thiscall> {
-        template<typename Ret, typename ... Args>
-        static inline Ret call(address_t address, Args ... args) {
-            return (reinterpret_cast<Ret(__thiscall *)(Args...)>(address))(args...);
-        }
-    };
-#endif
-}
-
-class urmem {
-public:
-    using address_t = unsigned long;
-    using byte_t = unsigned char;
-    using bytearray_t = std::vector<byte_t>;
-    using calling_convention = urmem_invoker::calling_convention;
-
     template<calling_convention CConv = calling_convention::cdeclcall, typename Ret = void, typename ... Args>
     static Ret call_function(address_t address, Args ... args) {
 #ifdef _WIN32
-        return urmem_invoker::invoker<CConv>::template call<Ret, Args...>(address, args...);
+        return invoker<CConv>::template call<Ret, Args...>(address, args...);
 #else
         return (reinterpret_cast<Ret(*)(Args...)>(address))(args...);
 #endif
@@ -291,8 +258,8 @@ public:
 
     private:
         address_t _patch_addr;
-        bytearray_t _original_data;
         bytearray_t _new_data;
+        bytearray_t _original_data;
         bool _enabled;
     };
 
@@ -377,6 +344,36 @@ public:
         address_t _original_addr{};
         std::shared_ptr<patch> _patch;
     };
+
+private:
+#ifdef _WIN32
+    template<calling_convention>
+    struct invoker;
+
+    template<>
+    struct invoker<calling_convention::cdeclcall> {
+        template<typename Ret, typename ... Args>
+        static inline Ret call(address_t address, Args ... args) {
+            return (reinterpret_cast<Ret(__cdecl *)(Args...)>(address))(args...);
+        }
+    };
+
+    template<>
+    struct invoker<calling_convention::stdcall> {
+        template<typename Ret, typename ... Args>
+        static inline Ret call(address_t address, Args ... args) {
+            return (reinterpret_cast<Ret(__stdcall *)(Args...)>(address))(args...);
+        }
+    };
+
+    template<>
+    struct invoker<calling_convention::thiscall> {
+        template<typename Ret, typename ... Args>
+        static inline Ret call(address_t address, Args ... args) {
+            return (reinterpret_cast<Ret(__thiscall *)(Args...)>(address))(args...);
+        }
+    };
+#endif
 };
 
 #endif // URMEM_H_
