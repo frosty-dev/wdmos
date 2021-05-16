@@ -14,7 +14,6 @@ unsigned int* Core::datum_pointer_table_length;
 
 int ByondVersion;
 int ByondBuild;
-unsigned int Core::extended_profiling_insanely_hacky_check_if_its_a_new_call_or_resume;
 
 //std::vector<bool> Core::codecov_executed_procs;
 
@@ -208,17 +207,6 @@ std::uint32_t Core::get_socket_from_client(unsigned int id)
 {
 	int str = (int)GetSocketHandleStruct(id);
 	return ((Hellspawn*)(str - 0x74))->handle;
-}
-
-void Core::disconnect_client(unsigned int id)
-{
-#ifdef _WIN32
-	closesocket(get_socket_from_client(id));
-#else
-	close(get_socket_from_client(id));
-#endif
-	DisconnectClient1(id, 1, 1);
-	DisconnectClient2(id);
 }
 
 void Core::alert_dd(std::string msg)

@@ -5,7 +5,6 @@
 
 std::vector<Core::Proc> procs_by_id;
 std::unordered_map<std::string, std::vector<unsigned int>> procs_by_name;
-std::unordered_map<unsigned int, bool> extended_profiling_procs;
 std::unordered_map<unsigned int, ProcHook> proc_hooks;
 
 void strip_proc_path(std::string& name)
@@ -75,11 +74,6 @@ std::string Core::Proc::get_param_name(std::uint32_t index)
 		return nullptr;
 
 	return GetStringFromId(name_table[params_entry.params[index].name_index]);
-}
-
-ProfileInfo* Core::Proc::profile() const
-{
-	return GetProfileInfo(id);
 }
 
 void Core::Proc::hook(ProcHook hook_func)

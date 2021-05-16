@@ -26,9 +26,6 @@ Hooks an internal BYOND function which sends map updates to players, and measure
 #### Sockets
 Implements a TCP socket API similar to python's `socket`. Users may create new `/datum/socket`s, `connect()` them to a specified address and port, then `send()` and `recv()` strings. `recv()` sleeps without locking up the server until it receives any data.
 
-#### `Topic()` filter
-Replaces BYOND's malfunctioning `world/Topic()` spam limiter. You may create a white- and blacklist for always allowed and always denied IPs. Rogue clients who send data too quickly, except if they are on the whitelist, are automatically blacklisted until server restart.
-
 ## What will I be able to do with this?
 These modules are planned to be included in the future.
 
@@ -37,7 +34,6 @@ These modules are planned to be included in the future.
 - Hotpatch server: Receives compiled bytecode (eg. from the [VSCode extension](https://github.com/SpaceManiac/SpacemanDMM)) and patches it in for live code replacement.
 - ~~Maptick: Measures time taken by BYOND's SendMaps() function and makes it accessible from DM code, helping reduce lag spikes from not leaving enough processing time.~~
 - Proxy objects: Forward variable reads and writes to C++.
-- Websockets: Send and receive data using the websocket protocol.
 - Lua: Allows writing lua scripts that replace builtin procs. Mostly for messing about.
 - ~~Optimizer: Optimizes bytecode and inlines procs into each other to avoid call overhead.~~
 

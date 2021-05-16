@@ -111,7 +111,6 @@ namespace Core
 	std::string GetStringFromId(unsigned int id);
 	RawDatum* GetDatumPointerById(unsigned int id);
 	Value get_turf(int x, int y, int z);
-	extern unsigned int extended_profiling_insanely_hacky_check_if_its_a_new_call_or_resume;
 	ExecutionContext* get_context();
 	unsigned int register_opcode(std::string name, opcode_handler handler);
 	void Alert(const std::string& what);
@@ -123,7 +122,6 @@ namespace Core
 	void stack_push(Value val);
 	std::string type_to_text(unsigned int type);
 	std::string stringify(Value val);
-	void disconnect_client(unsigned int id);
 	std::uint32_t get_socket_from_client(unsigned int id);
 	void cleanup();
 	void alert_dd(std::string msg);

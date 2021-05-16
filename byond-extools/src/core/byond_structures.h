@@ -14,7 +14,6 @@
 #define REGPARM3 __attribute__((regparm(3)))
 #define REGPARM2 __attribute__((regparm(2)))
 #endif
-#define FLAG_PROFILE 0x10000
 
 #define PROC_FLAG_HIDDEN 1
 
@@ -317,11 +316,6 @@ struct ProcConstants
 	ExecutionContext* context;
 	int sequence_number;
 	int unknown4; //some callback thing
-	union
-	{
-		int unknown5;
-		int extended_profile_id;
-	};
 	int arg_count;
 	Value* args;
 	char unknown6[88];
@@ -354,7 +348,6 @@ struct ExecutionContext
 	std::uint32_t iterator_length;
 	std::uint32_t iterator_index;
 	Value iterator_filtered;
-	char unknown5;
 	char iterator_unknown;
 	char unknown6;
 	std::uint32_t infinite_loop_count;
@@ -455,52 +448,6 @@ public:
 	Params as_params();
 	LocalVars as_locals();
 	ProcBytecode as_bytecode();
-};
-
-struct ProfileEntry
-{
-	std::uint32_t seconds;
-	std::uint32_t microseconds;
-
-	unsigned long long as_microseconds()
-	{
-		return 1000000 * (unsigned long long)seconds + microseconds;
-	}
-	double as_seconds()
-	{
-		return (double)seconds + ((double)microseconds / 1000000);
-	}
-};
-
-struct ProfileInfo
-{
-	std::uint32_t call_count;
-	ProfileEntry real;
-	ProfileEntry total;
-	ProfileEntry self;
-	ProfileEntry overtime;
-	std::uint32_t proc_id;
-};
-
-struct NetMsg //named after the struct ThreadedNetMsg - unsure if it's actually that struct
-{
-	std::uint32_t type;
-	std::uint32_t payload_length;
-	std::uint32_t unk1;
-	std::uint32_t unk2;
-	char* payload;
-	std::uint32_t unk3;
-	std::uint32_t raw_header;
-};
-
-struct BSocket //or client?
-{
-	std::uint32_t unk1;
-	std::uint32_t addr_string_id;
-	//more unknown fields here
-	//EAX + 0x444 is the refcount, holy crap!
-	//EAX + 0x54 - key/username
-	std::string addr();
 };
 
 struct Hellspawn

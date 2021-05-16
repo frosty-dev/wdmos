@@ -3,15 +3,7 @@
 #include "byond_functions.h"
 #include "core.h"
 #include "proc_management.h"
-/*#ifdef _WIN32
-#include <headers/CapstoneDisassembler.hpp>
-#include <headers/Detour/x86Detour.hpp>
-#else*/
 #include "../third_party/subhook/subhook.h"
-//#endif
-
-typedef bool(*TopicFilter)(BSocket* socket, int socket_id);
-extern TopicFilter current_topic_filter;
 
 namespace Core
 {
@@ -40,6 +32,5 @@ namespace Core
 	void remove_hook(void* func);
 	void remove_all_hooks();
 	bool hook_custom_opcodes();
-	void set_topic_filter(TopicFilter tf);
 	//void schedule_call(Proc proc, std::vector<Value> args, Value src = Value::Null(), Value usr = Value::Null());
 }
