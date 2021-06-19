@@ -386,7 +386,7 @@ LocalVars MiscEntry::as_locals()
 
 ProcBytecode MiscEntry::as_bytecode()
 {
-	if (ByondVersion < 513 || ByondBuild >= 1539) {
+	if (ByondVersion > 513 || ByondBuild >= 1539) {
 		return ProcBytecode {
 			bytecode2.bytecode_length,
 			&bytecode2.bytecode,
