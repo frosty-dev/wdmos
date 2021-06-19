@@ -154,7 +154,7 @@ bool Core::populate_proc_list()
 		strip_proc_path(p.name);
 		p.simple_name = p.name.substr(p.name.rfind("/") + 1);
 		p.proc_table_entry = entry;
-		Core::Alert("Winsock init failed" + p.name);
+		Core::Alert("PROC LOAD: " + p.name);
 		p.bytecode_entry = misc_entry_table[entry->bytecode_idx]->as_bytecode();
 		p.locals_entry = misc_entry_table[entry->local_var_count_idx]->as_locals();
 		p.params_entry = misc_entry_table[entry->params_idx]->as_params();
