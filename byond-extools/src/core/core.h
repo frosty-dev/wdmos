@@ -21,8 +21,8 @@
 
 typedef void(*opcode_handler)(ExecutionContext* ctx);
 
-#define MIN_COMPATIBLE_MAJOR 512
-#define MIN_COMPATIBLE_MINOR 1484
+#define MIN_COMPATIBLE_MAJOR 514
+#define MIN_COMPATIBLE_MINOR 1560
 
 #define MANAGED(x) Core::ManagedString(x)
 
