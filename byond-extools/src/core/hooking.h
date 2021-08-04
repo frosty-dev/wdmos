@@ -3,7 +3,7 @@
 #include "byond_functions.h"
 #include "core.h"
 #include "proc_management.h"
-#include "../third_party/subhook/subhook.h"
+#include "../subhook/subhook.h"
 
 namespace Core
 {

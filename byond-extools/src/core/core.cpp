@@ -1,7 +1,5 @@
 #include "core.h"
 #include "find_functions.h"
-#include "socket/socket.h"
-#include "../datum_socket/datum_socket.h"
 #include <fstream>
 #include <unordered_set>
 #include <chrono>
@@ -222,6 +220,5 @@ void Core::cleanup()
 	Core::destroy_proc_list();
 	proc_hooks.clear();
 	global_direct_cache.clear();
-	clean_sockets();
 	Core::initialized = false; // add proper modularization already
 }
