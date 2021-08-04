@@ -3,6 +3,7 @@
 #include <fstream>
 #include <stack>
 #include <mutex>
+#include <memory>
 
 CrashProcPtr oCrashProc;
 CallGlobalProcPtr oCallGlobalProc;
