@@ -19,6 +19,7 @@ class Reaction
         Reaction(Value v);
     private:
         Reaction();
+        std::string reaction_id;
         float priority;
         float min_temp_req = -1.0;
         float max_temp_req = -1.0;
