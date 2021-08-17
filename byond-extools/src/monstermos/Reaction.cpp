@@ -7,7 +7,7 @@ using namespace monstermos::constants;
 Reaction::Reaction(Value v)
 {
     List min_reqs = v.get("min_requirements");
-    reaction_id = "_" + Core::stringify(v.get("id"));
+    reaction_id_hash = v.get("id_hash");
 
     if(min_reqs.at("TEMP").type == DataType::NUMBER) min_temp_req = min_reqs.at("TEMP");
     if(min_reqs.at("MAX_TEMP").type == DataType::NUMBER) max_temp_req = min_reqs.at("MAX_TEMP");
@@ -29,6 +29,7 @@ Reaction::Reaction(Value v)
     else
     {
         Core::alert_dd("РЕАКЦИЯ: " + Core::stringify(v.get("type")) + "/react");
+        Core::alert_dd("ХЕШ: " + std::to_string(reaction_id_hash));
     }
     proc_id = proc->id;
 }
@@ -54,5 +55,5 @@ bool Reaction::check_conditions(const GasMixture& air) const
 
 int Reaction::react(GasMixture& air,Value src,Value holder) const
 {
-    return (int)(float)(Core::get_proc(proc_id).call({src, holder, reaction_id}));
+    return (int)(float)(Core::get_proc(proc_id).call({src, holder, Value(reaction_id_hash)}));
 } 
