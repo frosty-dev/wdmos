@@ -1,7 +1,6 @@
 #include "maptick.h"
 #include "../core/core.h"
 #include <chrono>
-#include "../datum_socket/datum_socket.h"
 
 SendMapsPtr oSendMaps;
 
