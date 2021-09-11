@@ -13,8 +13,6 @@ unsigned int* Core::datum_pointer_table_length;
 int ByondVersion;
 int ByondBuild;
 
-//std::vector<bool> Core::codecov_executed_procs;
-
 std::map<unsigned int, opcode_handler> Core::opcode_handlers;
 std::map<std::string, unsigned int> Core::name_to_opcode;
 unsigned int next_opcode_id = 0x1337;
@@ -90,7 +88,6 @@ bool Core::initialize()
 		return true;
 	}
 	initialized = verify_compat() && find_functions() && populate_proc_list() && hook_custom_opcodes();
-	//Core::codecov_executed_procs.resize(Core::get_all_procs().size());
 	return initialized;
 }
 
@@ -108,21 +105,8 @@ void Core::Alert(int what)
 }
 
 unsigned int Core::GetStringId(std::string str, bool increment_refcount) {
-	switch (ByondVersion) {
-	case 512:
-		{
-			int idx = GetStringTableIndex(str.c_str(), 0, 1);
-			if (increment_refcount)
-			{
-				String* str = GetStringTableEntry(idx);
-				str->refcount++;
-			}
-			return idx; //this could cause memory problems with a lot of long strings but otherwise they get garbage collected after first use.
-		}
-		case 513:
-		case 514:
-			return GetStringTableIndexUTF8(str.c_str(), 0xFFFFFFFF, 0, 1);
-		default: break;
+	if (ByondVersion == 514) {
+		return GetStringTableIndexUTF8(str.c_str(), 0xFFFFFFFF, 0, 1);
 	}
 	return 0;
 }
@@ -181,25 +165,6 @@ std::string Core::stringify(Value val)
 {
 	return GetStringFromId(ToString(val.type, val.value));
 }
-
-/*extern "C" __declspec(dllexport) const char* dump_codecov(int a, const char** b)
-{
-	std::ofstream o("codecov.txt");
-	unsigned int called = 0;
-	unsigned int actual_count = 0;
-	for (int i = 0; i < Core::codecov_executed_procs.size(); i++)
-	{
-		Core::Proc& p = Core::get_proc(i);
-		if (!p.name.empty() && p.name.back() != ')')
-		{
-			o << p.name << ": " << Core::codecov_executed_procs[i] << "\n";
-			if (Core::codecov_executed_procs[i]) called++;
-			actual_count++;
-		}
-	}
-	o << "Coverage: " << (called / (float)actual_count) * 100.0f << "% (" << called << "/" << actual_count << ")\n";
-	return "";
-}*/
 
 std::uint32_t Core::get_socket_from_client(unsigned int id)
 {

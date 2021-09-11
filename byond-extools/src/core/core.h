@@ -106,8 +106,6 @@ namespace Core
 	//extern std::vector<bool> codecov_executed_procs;
 	unsigned int GetStringId(std::string str, bool increment_refcount = 0);
 	ManagedString GetManagedString(std::string str);
-	void FreeByondString(std::string s);
-	void FreeByondString(unsigned int id);
 	std::string GetStringFromId(unsigned int id);
 	RawDatum* GetDatumPointerById(unsigned int id);
 	Value get_turf(int x, int y, int z);
