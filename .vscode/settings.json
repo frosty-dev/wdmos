@@ -78,5 +78,6 @@
         "random": "cpp",
         "execution": "cpp",
         "queue": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "${workspaceFolder}/byond-extools"
 }

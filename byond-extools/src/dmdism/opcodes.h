@@ -44,53 +44,6 @@ enum class AccessModifier : std::uint32_t
 	INITIAL = 0xFFE7,
 };
 
-const std::unordered_map<AccessModifier, std::string> modifier_names = {
-	{AccessModifier::SRC, "SRC"},
-	{AccessModifier::DOT, "DOT" },
-	{AccessModifier::ARG, "ARG" },
-	{AccessModifier::ARGS, "ARGS"},
-	{AccessModifier::LOCAL, "LOCAL"},
-	{AccessModifier::GLOBAL, "GLOBAL"},
-	{AccessModifier::SUBVAR, "SUBVAR"},
-	{AccessModifier::CACHE, "CACHE"},
-
-	{AccessModifier::SRC_PROC_SPEC, "SRC_PROC_SPEC"},
-	{AccessModifier::SRC_PROC, "SRC_PROC"},
-	{AccessModifier::PROC, "PROC"},
-	{AccessModifier::PROC_NO_RET, "PROC_NO_RET"},
-
-	{AccessModifier::WORLD, "WORLD"},
-	{AccessModifier::NULL_, "NULL"},
-};
-
-const std::unordered_map<DataType, std::string> datatype_names = {
-	{ DataType::NULL_D, "NULL" },
-	{ DataType::TURF, "TURF" },
-	{ DataType::OBJ, "OBJ" },
-	{ DataType::MOB, "MOB" },
-	{ DataType::AREA, "AREA" },
-	{ DataType::CLIENT, "CLIENT" },
-	{ DataType::STRING, "STRING" },
-	{ DataType::MOB_TYPEPATH, "MOB_TYPEPATH" },
-	{ DataType::OBJ_TYPEPATH, "OBJ_TYPEPATH" },
-	{ DataType::TURF_TYPEPATH, "TURF_TYPEPATH" },
-	{ DataType::AREA_TYPEPATH, "AREA_TYPEPATH" },
-	{ DataType::RESOURCE, "RESOURCE"},
-	{ DataType::IMAGE, "IMAGE" },
-	{ DataType::WORLD_D, "WORLD" },
-	{ DataType::DATUM, "DATUM" },
-	{ DataType::SAVEFILE, "SAVEFILE" },
-	{ DataType::LIST_TYPEPATH, "LIST_TYPEPATH" },
-	{ DataType::NUMBER, "NUMBER" },
-	{ DataType::CLIENT_TYPEPATH, "CLIENT_TYPEPATH" },
-	{ DataType::LIST, "LIST" },
-	{ DataType::LIST_ARGS, "LIST_ARGS" },
-	{ DataType::LIST_VERBS, "LIST_VERBS" },
-	{ DataType::LIST_CONTENTS, "LIST_CONTENTS" },
-	{ DataType::DATUM_TYPEPATH, "DATUM_TYPEPATH" },
-	{ DataType::LIST_TURF_CONTENTS, "LIST_TURF_CONTENTS" },
-};
-
 const char* const get_mnemonic(Bytecode bytecode);
 
 class Instruction;

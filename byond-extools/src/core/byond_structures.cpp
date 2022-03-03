@@ -39,7 +39,7 @@ static bool to_bool(Value& v)
 		case DataType::NULL_D:
 			return false;
 		case DataType::NUMBER:
-			return v.valuef != 0.0f;
+			return std::isnan(v.valuef);
 		case DataType::STRING:
 			return *(GetStringTableEntry(v.value)->stringData) != 0;
 		default:
