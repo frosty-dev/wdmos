@@ -10,25 +10,6 @@ static_assert(BYTECODE_RET == Bytecode::RET);
 static_assert(BYTECODE_DBG_LINENO == Bytecode::DBG_LINENO);
 static_assert(BYTECODE_UNK == Bytecode::UNK);
 
-const std::unordered_map<AccessModifier, std::string> modifier_names = {
-	{AccessModifier::SRC, "SRC"},
-	{AccessModifier::DOT, "DOT" },
-	{AccessModifier::ARG, "ARG" },
-	{AccessModifier::ARGS, "ARGS"},
-	{AccessModifier::LOCAL, "LOCAL"},
-	{AccessModifier::GLOBAL, "GLOBAL"},
-	{AccessModifier::SUBVAR, "SUBVAR"},
-	{AccessModifier::CACHE, "CACHE"},
-
-	{AccessModifier::SRC_PROC_SPEC, "SRC_PROC_SPEC"},
-	{AccessModifier::SRC_PROC, "SRC_PROC"},
-	{AccessModifier::PROC, "PROC"},
-	{AccessModifier::PROC_NO_RET, "PROC_NO_RET"},
-
-	{AccessModifier::WORLD, "WORLD"},
-	{AccessModifier::NULL_, "NULL"},
-};
-
 const std::unordered_map<DataType, std::string> datatype_names = {
 	{ DataType::NULL_D, "NULL" },
 	{ DataType::TURF, "TURF" },

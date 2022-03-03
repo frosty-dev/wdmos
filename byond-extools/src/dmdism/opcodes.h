@@ -22,6 +22,24 @@ inline bool operator!=(std::uint32_t lhs, Bytecode rhs)
 	return lhs != (std::uint32_t) rhs;
 }
 
+const std::unordered_map<AccessModifier, std::string> modifier_names = {
+	{AccessModifier::SRC, "SRC"},
+	{AccessModifier::DOT, "DOT" },
+	{AccessModifier::ARG, "ARG" },
+	{AccessModifier::ARGS, "ARGS"},
+	{AccessModifier::LOCAL, "LOCAL"},
+	{AccessModifier::GLOBAL, "GLOBAL"},
+	{AccessModifier::SUBVAR, "SUBVAR"},
+	{AccessModifier::CACHE, "CACHE"},
+
+	{AccessModifier::SRC_PROC_SPEC, "SRC_PROC_SPEC"},
+	{AccessModifier::SRC_PROC, "SRC_PROC"},
+	{AccessModifier::PROC, "PROC"},
+	{AccessModifier::PROC_NO_RET, "PROC_NO_RET"},
+
+	{AccessModifier::WORLD, "WORLD"},
+	{AccessModifier::NULL_, "NULL"},
+};
 
 enum class AccessModifier : std::uint32_t
 {
