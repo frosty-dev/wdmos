@@ -26,7 +26,6 @@ std::vector<Reaction> cached_reactions;
 TurfGrid all_turfs;
 Value SSair;
 int str_id_extools_pointer;
-int gas_mixture_count = 0;
 float gas_moles_visible[TOTAL_NUM_GASES];
 std::vector<Value> gas_overlays[TOTAL_NUM_GASES];
 
@@ -44,7 +43,6 @@ trvh gasmixture_register(unsigned int args_len, Value* args, Value src)
 	std::shared_ptr<GasMixture> *ptr = new std::shared_ptr<GasMixture>;
 	*ptr = std::make_shared<GasMixture>(src.get_by_id(str_id_volume).valuef);
 	SetVariable(src.type, src.value, str_id_extools_pointer, Value(NUMBER, (int)ptr));
-	gas_mixture_count++;
 	return Value::Null();
 }
 
@@ -54,7 +52,6 @@ trvh gasmixture_unregister(unsigned int args_len, Value* args, Value src)
 	if (v != 0) {
 		std::shared_ptr<GasMixture> *gm = (std::shared_ptr<GasMixture> *)v;
 		delete gm;
-		gas_mixture_count--;
 		SetVariable(src.type, src.value, str_id_extools_pointer, Value::Null());
 	}
 	return Value::Null();
@@ -76,7 +73,6 @@ void hDelDatum(unsigned int datum_id) {
 		}
 		if (gm != nullptr) {
 			delete gm;
-			gas_mixture_count--;
 		}
 	}
 	oDelDatum(datum_id);
