@@ -10,34 +10,6 @@ static_assert(BYTECODE_RET == Bytecode::RET);
 static_assert(BYTECODE_DBG_LINENO == Bytecode::DBG_LINENO);
 static_assert(BYTECODE_UNK == Bytecode::UNK);
 
-const std::unordered_map<DataType, std::string> datatype_names = {
-	{ DataType::NULL_D, "NULL" },
-	{ DataType::TURF, "TURF" },
-	{ DataType::OBJ, "OBJ" },
-	{ DataType::MOB, "MOB" },
-	{ DataType::AREA, "AREA" },
-	{ DataType::CLIENT, "CLIENT" },
-	{ DataType::STRING, "STRING" },
-	{ DataType::MOB_TYPEPATH, "MOB_TYPEPATH" },
-	{ DataType::OBJ_TYPEPATH, "OBJ_TYPEPATH" },
-	{ DataType::TURF_TYPEPATH, "TURF_TYPEPATH" },
-	{ DataType::AREA_TYPEPATH, "AREA_TYPEPATH" },
-	{ DataType::RESOURCE, "RESOURCE"},
-	{ DataType::IMAGE, "IMAGE" },
-	{ DataType::WORLD_D, "WORLD" },
-	{ DataType::DATUM, "DATUM" },
-	{ DataType::SAVEFILE, "SAVEFILE" },
-	{ DataType::LIST_TYPEPATH, "LIST_TYPEPATH" },
-	{ DataType::NUMBER, "NUMBER" },
-	{ DataType::CLIENT_TYPEPATH, "CLIENT_TYPEPATH" },
-	{ DataType::LIST, "LIST" },
-	{ DataType::LIST_ARGS, "LIST_ARGS" },
-	{ DataType::LIST_VERBS, "LIST_VERBS" },
-	{ DataType::LIST_CONTENTS, "LIST_CONTENTS" },
-	{ DataType::DATUM_TYPEPATH, "DATUM_TYPEPATH" },
-	{ DataType::LIST_TURF_CONTENTS, "LIST_TURF_CONTENTS" },
-};
-
 // ----------------------------------------------------------------------------
 // Mnemonic lookup
 
